@@ -1,26 +1,43 @@
 """Ponto de entrada da aplicação Streamlit.
 
 Execute a partir da raiz do projeto com:  streamlit run app.py
+Este arquivo só monta o menu; cada página fica em cgcell/apresentacao/.
 """
 
 import streamlit as st
 
+from cgcell.apresentacao import pagina_dashboard, pagina_ordens_servico, pagina_tipos_servico
 from cgcell.config import NOME_PROJETO
-from cgcell.servicos.sessao import abrir_conexao, obter_versao_banco
 
 st.set_page_config(page_title=NOME_PROJETO, page_icon="📱", layout="wide")
 
-st.title(NOME_PROJETO)
-st.caption(
-    "Ferramenta complementar de gestão e análise de dados para a assistência técnica. "
-    "Não substitui o sistema de ordens de serviço da empresa."
+navegacao = st.navigation(
+    {
+        "Gestão": [
+            st.Page(pagina_dashboard.renderizar, title="Dashboard", icon="📊", default=True),
+        ],
+        "Cadastros": [
+            st.Page(
+                pagina_ordens_servico.renderizar,
+                title="Ordens de serviço",
+                icon="🧾",
+                url_path="ordens-de-servico",
+            ),
+            st.Page(
+                pagina_tipos_servico.renderizar,
+                title="Tipos de serviço",
+                icon="🛠️",
+                url_path="tipos-de-servico",
+            ),
+        ],
+    }
 )
 
-with abrir_conexao() as conexao:
-    versao_banco = obter_versao_banco(conexao)
+with st.sidebar:
+    st.markdown(f"**{NOME_PROJETO}**")
+    st.caption(
+        "Ferramenta complementar de gestão e análise de dados. "
+        "Não substitui o sistema de ordens de serviço da empresa."
+    )
 
-st.info(
-    "Etapa 2 concluída: banco de dados e regras de negócio prontos. "
-    "As telas de cadastro e o dashboard chegam na Etapa 3."
-)
-st.caption(f"Banco de dados conectado · esquema versão {versao_banco}")
+navegacao.run()

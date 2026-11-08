@@ -3,9 +3,8 @@
 Dashboard para gestão e análise de dados de uma assistência técnica de celulares, desenvolvido em Python
 com Streamlit, Pandas, Plotly e SQLite. Projeto acadêmico do curso de Análise e Desenvolvimento de Sistemas.
 
-> **Status:** em desenvolvimento — **Etapa 2 de 8 concluída** (banco de dados e regras de negócio).
-> As telas de cadastro, o dashboard e o Machine Learning ainda não estão implementados.
-> Veja o [roadmap](#roadmap).
+> **Status:** em desenvolvimento — **Etapa 3 de 8 concluída**: cadastros e dashboard gerencial funcionando.
+> O módulo de Machine Learning ainda não foi implementado. Veja o [roadmap](#roadmap).
 
 ---
 
@@ -30,6 +29,29 @@ previsões úteis ao planejamento.
 - **Não há histórico real de dados.** O sistema de OS atual não exporta dados. Os dados reais entrarão por cadastro
   manual. Qualquer dado gerado para demonstração será identificado como **SIMULADO** na interface, nos gráficos e
   nesta documentação.
+
+---
+
+## Funcionalidades
+
+| Tela | O que faz |
+|---|---|
+| **📊 Dashboard** | Faturamento recebido, quantidade de OS, OS concluídas e canceladas; evolução do faturamento e do volume; serviços mais frequentes; distribuição por status. Filtros de período (pré-definidos ou personalizado), de origem (apenas reais / apenas simulados / todos) e de agrupamento (dia, semana, mês). |
+| **🧾 Ordens de serviço** | Cadastrar OS; consultar com busca por código e filtros de status e origem; editar, registrar pagamento e excluir (conforme as regras de cada situação). |
+| **🛠️ Tipos de serviço** | Cadastrar, consultar, ativar e desativar. |
+
+### Regras de cálculo do dashboard
+
+| Indicador | Regra |
+|---|---|
+| Faturamento recebido | Soma das OS **pagas**, filtradas pela **data de pagamento**. Não é lucro. |
+| Quantidade de OS | OS filtradas pela **data de abertura**, em qualquer situação. |
+| OS concluídas | OS abertas no período com status Concluída (canceladas nunca contam). |
+| Serviços mais frequentes | OS abertas no período, **sem as canceladas**. |
+| Todas | OS excluídas logicamente nunca entram. |
+
+Dados SIMULADOS aparecem com aviso no topo, título de gráfico sinalizado e barras **laranjas com hachura**.
+Exibição no padrão brasileiro: `DD/MM/AAAA` e `R$ 1.234,56`.
 
 ---
 
@@ -179,8 +201,17 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 
 | Pasta | O que cobre |
 |---|---|
-| `tests/unitarios/` | Validações e regras de consistência (sem banco). |
-| `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão e backup. |
+| `tests/unitarios/` | Validações, regras de consistência, indicadores, formatação BR, períodos e gráficos (sem banco). |
+| `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão, backup, indicadores a partir do banco e telas (com o `AppTest` do Streamlit). |
+
+---
+
+## Limitações conhecidas
+
+- Sem histórico real ainda: os indicadores refletem só o que for cadastrado a partir de agora.
+- Sem login (limitação do Streamlit); o app foi feito para rodar só no computador da loja.
+- Faturamento não é lucro: custos de peças não são registrados.
+- Capturas de tela ainda não incluídas (serão feitas apenas com dados fictícios).
 
 ---
 
@@ -199,7 +230,7 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 
 - [x] **Etapa 1** — Diagnóstico e estrutura do projeto
 - [x] **Etapa 2** — Banco de dados e regras de negócio
-- [ ] **Etapa 3** — Dashboard
+- [x] **Etapa 3** — Dashboard
 - [ ] **Etapa 4** — Engenharia de dados
 - [ ] **Etapa 5** — Machine Learning (sobre base SIMULADA até haver histórico real)
 - [ ] **Etapa 6** — Testes e CI/CD

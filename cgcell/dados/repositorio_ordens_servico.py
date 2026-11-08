@@ -133,6 +133,25 @@ def listar(conexao: sqlite3.Connection, incluir_excluidas: bool = False) -> list
     return [_para_ordem_servico(linha) for linha in conexao.execute(sql)]
 
 
+def listar_para_analise(conexao: sqlite3.Connection) -> list[dict[str, Any]]:
+    """Registros para os indicadores: OS não excluídas, com o nome do tipo de serviço.
+
+    Retorna valores crus do banco (datas em texto ISO); a conversão de tipos fica
+    na camada de análise.
+    """
+    linhas = conexao.execute(
+        """
+        SELECT o.id_ordem_servico, o.codigo_os, o.data_abertura, o.data_conclusao,
+               o.data_pagamento, o.valor_servico, o.status_os, o.status_pagamento,
+               o.id_tipo_servico, t.nome_servico, o.origem_registro
+          FROM ordem_servico AS o
+          JOIN tipo_servico AS t ON t.id_tipo_servico = o.id_tipo_servico
+         WHERE o.excluida = 0
+        """
+    )
+    return [dict(linha) for linha in linhas]
+
+
 def atualizar(
     conexao: sqlite3.Connection,
     id_ordem_servico: int,
