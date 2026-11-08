@@ -10,16 +10,10 @@ import pandas as pd
 
 from cgcell.analise import indicadores
 from cgcell.analise.indicadores import Frequencia
-from cgcell.analise.preparacao import (
-    CATEGORIA_SIMULADO,
-    FiltroOrigem,
-    criar_base_analise,
-    filtrar_periodo,
-    filtrar_por_origem,
-)
-from cgcell.dados import repositorio_ordens_servico
+from cgcell.analise.preparacao import CATEGORIA_SIMULADO, FiltroOrigem, filtrar_periodo
 from cgcell.dominio import StatusOS
 from cgcell.servicos.erros import ErroValidacao
+from cgcell.servicos.servico_dados import executar_pipeline_do_banco
 
 
 @dataclass(frozen=True)
@@ -52,8 +46,8 @@ def calcular_painel(
     if inicio > fim:
         raise ErroValidacao(["A data inicial do período não pode ser depois da data final."])
 
-    base = criar_base_analise(repositorio_ordens_servico.listar_para_analise(conexao))
-    base = filtrar_por_origem(base, FiltroOrigem(filtro_origem))
+    # Mesmo caminho de dados de todo o sistema: tipagem, validação, limpeza, transformação.
+    base = executar_pipeline_do_banco(conexao, FiltroOrigem(filtro_origem)).base
 
     por_status = indicadores.quantidade_por_status(base, inicio, fim)
     quantidade = dict(zip(por_status["status_os"], por_status["quantidade"], strict=True))
