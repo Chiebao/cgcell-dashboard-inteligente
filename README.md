@@ -108,6 +108,18 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 
 ## Execução
 
+### Jeito mais fácil (dois cliques)
+
+Dê dois cliques no arquivo **`iniciar_dashboard.bat`**, na pasta do projeto. Ele:
+
+1. na primeira vez, cria o ambiente virtual e instala as dependências;
+2. inicia o app e abre o navegador em `http://localhost:8501`;
+3. se o app já estiver aberto, apenas abre o navegador de novo.
+
+Para fechar o app, feche a janela preta que abriu junto.
+
+### Pelo terminal
+
 Com o ambiente virtual ativado:
 
 ```powershell
