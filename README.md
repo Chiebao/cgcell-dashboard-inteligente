@@ -116,6 +116,8 @@ streamlit run app.py
 
 O navegador abre em `http://localhost:8501`. Para encerrar, pressione `Ctrl + C` no terminal.
 
+A página recarrega sozinha quando um arquivo do projeto é salvo (opção `runOnSave` em `.streamlit/config.toml`).
+
 ## Testes e qualidade
 
 ```powershell
