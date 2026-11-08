@@ -3,8 +3,9 @@
 Dashboard para gestão e análise de dados de uma assistência técnica de celulares, desenvolvido em Python
 com Streamlit, Pandas, Plotly e SQLite. Projeto acadêmico do curso de Análise e Desenvolvimento de Sistemas.
 
-> **Status:** em desenvolvimento — **Etapa 1 de 8 concluída** (estrutura do projeto).
-> Cadastros, dashboard e Machine Learning ainda não estão implementados. Veja o [roadmap](#roadmap).
+> **Status:** em desenvolvimento — **Etapa 2 de 8 concluída** (banco de dados e regras de negócio).
+> As telas de cadastro, o dashboard e o Machine Learning ainda não estão implementados.
+> Veja o [roadmap](#roadmap).
 
 ---
 
@@ -59,6 +60,43 @@ systenRepair/
 ```
 
 A análise completa das decisões está em [docs/analise_inicial.md](docs/analise_inicial.md).
+
+---
+
+## Banco de dados
+
+```mermaid
+erDiagram
+    tipo_servico ||--o{ ordem_servico : "classifica"
+    tipo_servico {
+        INTEGER id_tipo_servico PK
+        TEXT nome_servico
+        INTEGER ativo
+    }
+    ordem_servico {
+        INTEGER id_ordem_servico PK
+        TEXT codigo_os
+        TEXT data_abertura
+        INTEGER valor_servico "centavos"
+        TEXT status_os
+        TEXT status_pagamento
+        TEXT data_pagamento
+        INTEGER id_tipo_servico FK
+        TEXT origem_registro "manual | importado | simulado"
+        INTEGER excluida "exclusão lógica"
+    }
+```
+
+Destaques:
+
+- Valores em centavos e datas em ISO; a conversão para R$ e DD/MM/AAAA acontece só na tela.
+- Regras de consistência validadas na camada de serviços **e** como `CHECK` no próprio banco.
+- Migrações versionadas (`cgcell/dados/migracoes/0001_...sql`), aplicadas automaticamente.
+- Exclusão somente lógica, permitida após 90 dias da abertura.
+- Backup com `python -m scripts.backup_banco`.
+
+Diagrama completo, regras de edição e procedimento de recuperação:
+[docs/banco_de_dados.md](docs/banco_de_dados.md).
 
 ---
 
@@ -139,13 +177,19 @@ python -m ruff check .    # análise estática
 
 Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados fictícios.
 
+| Pasta | O que cobre |
+|---|---|
+| `tests/unitarios/` | Validações e regras de consistência (sem banco). |
+| `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão e backup. |
+
 ---
 
 ## Segurança e privacidade
 
 - O app roda **apenas localmente**. O Streamlit não tem login nativo: se um dia for hospedado online, será preciso
   tratar o acesso público e a persistência do SQLite (hospedagens com disco temporário perdem os dados).
-- O banco (`data/*.db`) e o arquivo `.env` ficam **fora do repositório**.
+- O banco (`data/*.db`), os backups (`backups/`) e o arquivo `.env` ficam **fora do repositório**.
+- Todas as consultas SQL são parametrizadas (sem montar SQL com dados do usuário).
 - **LGPD:** o projeto evita dados pessoais por design — não armazena nome, telefone ou documento de clientes,
   apenas dados das ordens de serviço necessários à análise.
 
@@ -154,7 +198,7 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 ## Roadmap
 
 - [x] **Etapa 1** — Diagnóstico e estrutura do projeto
-- [ ] **Etapa 2** — Banco de dados e regras de negócio
+- [x] **Etapa 2** — Banco de dados e regras de negócio
 - [ ] **Etapa 3** — Dashboard
 - [ ] **Etapa 4** — Engenharia de dados
 - [ ] **Etapa 5** — Machine Learning (sobre base SIMULADA até haver histórico real)
