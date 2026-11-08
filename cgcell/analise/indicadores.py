@@ -10,24 +10,22 @@ Regras de cálculo (seção 6 do AGENTS.md):
 from __future__ import annotations
 
 from datetime import date
-from enum import StrEnum
 
 import pandas as pd
 
-from cgcell.analise.preparacao import CATEGORIA_REAL, filtrar_periodo
+from cgcell.analise.agregacao import Frequencia, agregar_por_periodo, agregar_por_tipo_servico
+from cgcell.analise.preparacao import filtrar_periodo
 from cgcell.dominio import StatusOS, StatusPagamento
 
-
-class Frequencia(StrEnum):
-    """Agrupamento temporal dos gráficos de evolução (códigos de período do pandas)."""
-
-    DIA = "D"
-    SEMANA = "W"
-    MES = "M"
-
-    @property
-    def rotulo(self) -> str:
-        return {Frequencia.DIA: "Dia", Frequencia.SEMANA: "Semana", Frequencia.MES: "Mês"}[self]
+__all__ = [
+    "Frequencia",
+    "evolucao_faturamento",
+    "evolucao_volume",
+    "faturamento_recebido",
+    "quantidade_os",
+    "quantidade_por_status",
+    "servicos_mais_frequentes",
+]
 
 
 def _pagas_no_periodo(base: pd.DataFrame, inicio: date, fim: date) -> pd.DataFrame:
@@ -67,17 +65,8 @@ def servicos_mais_frequentes(
     """Tipos de serviço mais pedidos no período, sem contar OS canceladas."""
     abertas = _abertas_no_periodo(base, inicio, fim)
     validas = abertas[abertas["status_os"].ne(str(StatusOS.CANCELADA))]
-    contagem = (
-        validas.groupby("nome_servico", as_index=False)
-        .size()
-        .rename(columns={"size": "quantidade"})
-    )
-    contagem["quantidade"] = contagem["quantidade"].astype("int64")
-    return (
-        contagem.sort_values(["quantidade", "nome_servico"], ascending=[False, True])
-        .head(limite)
-        .reset_index(drop=True)
-    )
+    por_tipo = agregar_por_tipo_servico(validas)[["nome_servico", "quantidade"]]
+    return por_tipo.head(limite).reset_index(drop=True)
 
 
 def _evolucao(
@@ -90,19 +79,16 @@ def _evolucao(
     nome_resultado: str,
 ) -> pd.DataFrame:
     """Agrega por período e categoria de origem, preenchendo períodos vazios com zero."""
-    periodos = pd.period_range(start=inicio, end=fim, freq=str(frequencia))
-    categorias = sorted(linhas["categoria_origem"].unique()) or [CATEGORIA_REAL]
-
-    agrupado = linhas.assign(periodo=linhas[coluna_data].dt.to_period(str(frequencia)))
-    grupos = agrupado.groupby(["periodo", "categoria_origem"])
-    serie = grupos[coluna_valor].sum() if coluna_valor else grupos.size()
-
-    indice = pd.MultiIndex.from_product([periodos, categorias], names=["periodo", "categoria"])
-    serie = serie.reindex(indice, fill_value=0).astype("int64")
-
-    resultado = serie.rename(nome_resultado).reset_index()
-    resultado["periodo"] = resultado["periodo"].dt.start_time
-    return resultado
+    return agregar_por_periodo(
+        linhas,
+        coluna_data,
+        frequencia,
+        inicio=inicio,
+        fim=fim,
+        coluna_valor=coluna_valor,
+        por_origem=True,
+        nome_resultado=nome_resultado,
+    )
 
 
 def evolucao_faturamento(
