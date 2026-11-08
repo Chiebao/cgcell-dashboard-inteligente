@@ -3,8 +3,8 @@
 Dashboard para gestão e análise de dados de uma assistência técnica de celulares, desenvolvido em Python
 com Streamlit, Pandas, Plotly e SQLite. Projeto acadêmico do curso de Análise e Desenvolvimento de Sistemas.
 
-> **Status:** em desenvolvimento — **Etapa 3 de 8 concluída**: cadastros e dashboard gerencial funcionando.
-> O módulo de Machine Learning ainda não foi implementado. Veja o [roadmap](#roadmap).
+> **Status:** em desenvolvimento — **Etapa 4 de 8 concluída**: cadastros, dashboard e pipeline de dados
+> funcionando. O módulo de Machine Learning ainda não foi implementado. Veja o [roadmap](#roadmap).
 
 ---
 
@@ -39,6 +39,7 @@ previsões úteis ao planejamento.
 | **📊 Dashboard** | Faturamento recebido, quantidade de OS, OS concluídas e canceladas; evolução do faturamento e do volume; serviços mais frequentes; distribuição por status. Filtros de período (pré-definidos ou personalizado), de origem (apenas reais / apenas simulados / todos) e de agrupamento (dia, semana, mês). |
 | **🧾 Ordens de serviço** | Cadastrar OS; consultar com busca por código e filtros de status e origem; editar, registrar pagamento e excluir (conforme as regras de cada situação). |
 | **🛠️ Tipos de serviço** | Cadastrar, consultar, ativar e desativar. |
+| **🔎 Exploração dos dados** | Raio-x da base: período, ausentes, inconsistências, distribuição por dia da semana, mês e tipo, tempo até conclusão e pagamento, agrupamento temporal sugerido. |
 
 ### Regras de cálculo do dashboard
 
@@ -65,6 +66,20 @@ Apresentação (Streamlit) → Serviços (regras de negócio) → Dados (SQLite)
                            Análise (indicadores) → Machine Learning
 ```
 
+### Fluxo de dados
+
+```mermaid
+flowchart LR
+    A[Cadastro manual] --> V[Validação na entrada] --> DB[(SQLite)]
+    DB --> P[Pipeline:<br/>tipagem → recorte → validação<br/>→ limpeza → transformação]
+    P --> D[Dashboard]
+    P --> E[Exploração dos dados]
+    P --> M[Preparação de variáveis<br/>para o modelo]
+```
+
+Todas as análises passam pelo mesmo pipeline. Regras de transformação, análise exploratória e
+prevenção de vazamento de dados: [docs/engenharia_de_dados.md](docs/engenharia_de_dados.md).
+
 ```
 systenRepair/
 ├── app.py                 # Ponto de entrada do Streamlit
@@ -73,8 +88,8 @@ systenRepair/
 │   ├── apresentacao/      # Páginas e componentes Streamlit
 │   ├── servicos/          # Regras de negócio e validações
 │   ├── dados/             # Conexão SQLite e migrações
-│   ├── analise/           # Indicadores e agregações
-│   └── ml/                # Treino, avaliação e previsão
+│   ├── analise/           # Pipeline, tratamento, agregações, indicadores, exploração
+│   └── ml/                # Preparação de variáveis (treino e avaliação na Etapa 5)
 ├── scripts/               # Utilitários de linha de comando
 ├── data/                  # Banco SQLite local (fora do Git)
 ├── docs/                  # Documentação e diagramas
@@ -116,6 +131,7 @@ Destaques:
 - Migrações versionadas (`cgcell/dados/migracoes/0001_...sql`), aplicadas automaticamente.
 - Exclusão somente lógica, permitida após 90 dias da abertura.
 - Backup com `python -m scripts.backup_banco`.
+- Relatório exploratório no terminal com `python -m scripts.relatorio_exploratorio`.
 
 Diagrama completo, regras de edição e procedimento de recuperação:
 [docs/banco_de_dados.md](docs/banco_de_dados.md).
@@ -201,8 +217,9 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 
 | Pasta | O que cobre |
 |---|---|
-| `tests/unitarios/` | Validações, regras de consistência, indicadores, formatação BR, períodos e gráficos (sem banco). |
-| `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão, backup, indicadores a partir do banco e telas (com o `AppTest` do Streamlit). |
+| `tests/unitarios/` | Validações, regras de consistência, indicadores, formatação BR, períodos, gráficos, tratamento, agregação, pipeline e exploração (sem banco). |
+| `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão, backup, indicadores e pipeline a partir do banco, telas (com o `AppTest` do Streamlit) e scripts. |
+| `tests/ml/` | Preparação de variáveis para o modelo, com testes de **vazamento de dados**. |
 
 ---
 
@@ -231,7 +248,7 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 - [x] **Etapa 1** — Diagnóstico e estrutura do projeto
 - [x] **Etapa 2** — Banco de dados e regras de negócio
 - [x] **Etapa 3** — Dashboard
-- [ ] **Etapa 4** — Engenharia de dados
+- [x] **Etapa 4** — Engenharia de dados
 - [ ] **Etapa 5** — Machine Learning (sobre base SIMULADA até haver histórico real)
 - [ ] **Etapa 6** — Testes e CI/CD
 - [ ] **Etapa 7** — Validação com a empresa
