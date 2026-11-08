@@ -41,7 +41,8 @@ def test_app_completo_abre_no_dashboard():
 
 
 @pytest.mark.parametrize(
-    "modulo", ["pagina_dashboard", "pagina_ordens_servico", "pagina_tipos_servico"]
+    "modulo",
+    ["pagina_dashboard", "pagina_exploracao", "pagina_ordens_servico", "pagina_tipos_servico"],
 )
 def test_paginas_abrem_com_banco_vazio(modulo):
     app = pagina(modulo).run()
@@ -128,3 +129,24 @@ def _chaves(app: AppTest) -> list[str]:
         for elemento in colecao
         if elemento.key
     ]
+
+
+def test_pagina_exploracao_com_dados():
+    app = _app_com_tipo()
+    chaves = _chaves(app)
+    app.text_input(key=[k for k in chaves if k.endswith("_codigo")][0]).input("E1")
+    app.text_input(key=[k for k in chaves if k.endswith("_valor")][0]).input("50")
+    app.button[0].click().run()
+
+    exploracao = pagina("pagina_exploracao").run()
+    assert not exploracao.exception
+    metricas = {metrica.label: metrica.value for metrica in exploracao.metric}
+    assert metricas["OS válidas"] == "1"
+    assert "Nenhuma inconsistência encontrada." in texto_da_tela(exploracao)
+
+
+def test_script_relatorio_exploratorio(capsys):
+    from scripts import relatorio_exploratorio
+
+    assert relatorio_exploratorio.main(["--origem", "reais"]) == 0
+    assert "RELATÓRIO EXPLORATÓRIO" in capsys.readouterr().out
