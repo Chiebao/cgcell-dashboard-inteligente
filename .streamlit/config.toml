@@ -1,5 +1,10 @@
 # Configuração do Streamlit para este projeto.
 
+[server]
+# Recarrega a página automaticamente quando um arquivo do projeto é salvo.
+# Útil durante o desenvolvimento: as mudanças aparecem sem reiniciar o app.
+runOnSave = true
+
 [browser]
 # Não envia estatísticas de uso para os servidores do Streamlit.
 gatherUsageStats = false
