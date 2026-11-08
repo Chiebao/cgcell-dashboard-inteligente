@@ -1,0 +1,6 @@
+# Dependências de DESENVOLVIMENTO (testes e qualidade de código).
+# Inclui as dependências de execução pela linha abaixo.
+# Instalação:  python -m pip install -r requirements-dev.txt
+-r requirements.txt
+pytest==9.2.0
+ruff==0.17.4

@@ -1,0 +1,5 @@
+# Normaliza fins de linha: o Git guarda LF no repositório e converte conforme o sistema.
+* text=auto
+
+# Scripts do PowerShell continuam com CRLF no Windows.
+*.ps1 text eol=crlf

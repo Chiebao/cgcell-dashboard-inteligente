@@ -1,0 +1,35 @@
+# --- Ambiente virtual e caches do Python ---
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# --- Configurações sensíveis (nunca publicar) ---
+.env
+.streamlit/secrets.toml
+
+# --- Banco SQLite e backups (dados ficam só no PC) ---
+data/*
+!data/.gitkeep
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+backups/
+
+# --- Arquivos de trabalho locais ---
+prompt-etapa-*.md
+.claude/
+
+# --- Editores e sistema operacional ---
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store
