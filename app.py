@@ -6,7 +6,12 @@ Este arquivo só monta o menu; cada página fica em cgcell/apresentacao/.
 
 import streamlit as st
 
-from cgcell.apresentacao import pagina_dashboard, pagina_ordens_servico, pagina_tipos_servico
+from cgcell.apresentacao import (
+    pagina_dashboard,
+    pagina_exploracao,
+    pagina_ordens_servico,
+    pagina_tipos_servico,
+)
 from cgcell.config import NOME_PROJETO
 
 st.set_page_config(page_title=NOME_PROJETO, page_icon="📱", layout="wide")
@@ -15,6 +20,12 @@ navegacao = st.navigation(
     {
         "Gestão": [
             st.Page(pagina_dashboard.renderizar, title="Dashboard", icon="📊", default=True),
+            st.Page(
+                pagina_exploracao.renderizar,
+                title="Exploração dos dados",
+                icon="🔎",
+                url_path="exploracao-dos-dados",
+            ),
         ],
         "Cadastros": [
             st.Page(
