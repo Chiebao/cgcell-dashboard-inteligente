@@ -14,6 +14,7 @@ from enum import StrEnum
 
 import pandas as pd
 
+from cgcell.analise.tratamento import converter_datas, converter_valores
 from cgcell.dominio import OrigemRegistro
 
 COLUNAS_BASE = [
@@ -52,11 +53,12 @@ class FiltroOrigem(StrEnum):
 
 
 def criar_base_analise(registros: list[dict]) -> pd.DataFrame:
-    """Cria o DataFrame de análise a partir dos registros (já sem OS excluídas)."""
+    """Cria o DataFrame de análise a partir dos registros (já sem OS excluídas).
+
+    Datas e valores inválidos viram ausentes; a validação do pipeline os aponta depois.
+    """
     base = pd.DataFrame.from_records(registros, columns=COLUNAS_BASE)
-    for coluna in COLUNAS_DATA:
-        base[coluna] = pd.to_datetime(base[coluna], format="%Y-%m-%d")
-    base["valor_servico"] = base["valor_servico"].astype("int64")
+    base = converter_valores(converter_datas(base, COLUNAS_DATA))
     base["categoria_origem"] = (
         base["origem_registro"]
         .eq(str(OrigemRegistro.SIMULADO))
