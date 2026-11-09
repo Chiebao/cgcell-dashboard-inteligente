@@ -117,7 +117,8 @@ def test_dashboard_mostra_indicadores_da_os_paga():
 
     painel = pagina("pagina_dashboard").run()
     assert not painel.exception
-    valores = {metrica.label: metrica.value for metrica in painel.metric}
+    # O valor usa espaço que não quebra entre "R$" e o número.
+    valores = {metrica.label: metrica.value.replace("\xa0", " ") for metrica in painel.metric}
     assert valores["Faturamento recebido"] == "R$ 200,00"
     assert valores["Quantidade de OS"] == "1"
 
@@ -150,3 +151,51 @@ def test_script_relatorio_exploratorio(capsys):
 
     assert relatorio_exploratorio.main(["--origem", "reais"]) == 0
     assert "RELATÓRIO EXPLORATÓRIO" in capsys.readouterr().out
+
+
+def _app_completo() -> AppTest:
+    return AppTest.from_file(str(ARQUIVO_APP), default_timeout=TEMPO_LIMITE).run()
+
+
+def test_painel_de_acessibilidade_aparece_na_barra_lateral():
+    app = _app_completo()
+    assert not app.exception
+    rotulos = [elemento.label for elemento in app.sidebar.toggle]
+    assert rotulos == ["Alto contraste", "Resumo em texto dos gráficos"]
+    assert app.sidebar.radio(key="acessibilidade_tamanho_fonte").value == "normal"
+
+
+def test_ligar_alto_contraste_e_trocar_fonte_sem_erro():
+    from cgcell.apresentacao.acessibilidade import (
+        CHAVE_ALTO_CONTRASTE,
+        CHAVE_RESUMO_TEXTO,
+        CHAVE_TAMANHO_FONTE,
+        TamanhoFonte,
+    )
+
+    # Uma OS paga para o dashboard ter gráficos.
+    cadastro = _app_com_tipo()
+    chaves = _chaves(cadastro)
+    cadastro.text_input(key=[k for k in chaves if k.endswith("_codigo")][0]).input("A1")
+    cadastro.text_input(key=[k for k in chaves if k.endswith("_valor")][0]).input("349,50")
+    cadastro.selectbox(key=[k for k in chaves if k.endswith("_pagamento")][0]).select_index(1)
+    cadastro.date_input(key=[k for k in chaves if k.endswith("_data_pagamento")][0]).set_value(
+        date.today()
+    )
+    cadastro.button[0].click().run()
+
+    app = _app_completo()
+    app.toggle(key=CHAVE_ALTO_CONTRASTE).set_value(True).run()
+    assert not app.exception
+    for tamanho in (TamanhoFonte.GRANDE, TamanhoFonte.MUITO_GRANDE, TamanhoFonte.NORMAL):
+        app.radio(key=CHAVE_TAMANHO_FONTE).set_value(tamanho).run()
+        assert not app.exception
+        assert app.session_state[CHAVE_TAMANHO_FONTE] == tamanho
+
+    assert "Resumo do gráfico" not in texto_da_tela(app)
+    app.toggle(key=CHAVE_RESUMO_TEXTO).set_value(True).run()
+    assert not app.exception
+    resumos = [m.value for m in app.markdown if "Resumo do gráfico" in m.value]
+    assert len(resumos) == 4  # um para cada gráfico do dashboard
+    assert any("R$ 349,50" in resumo for resumo in resumos)
+    assert app.session_state[CHAVE_ALTO_CONTRASTE] is True
