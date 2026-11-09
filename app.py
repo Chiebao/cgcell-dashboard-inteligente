@@ -12,7 +12,7 @@ from cgcell.apresentacao import (
     pagina_ordens_servico,
     pagina_tipos_servico,
 )
-from cgcell.config import NOME_PROJETO
+from cgcell.config import NOME_PROJETO, modo_demonstracao
 
 st.set_page_config(page_title=NOME_PROJETO, page_icon="📱", layout="wide")
 
@@ -49,6 +49,13 @@ with st.sidebar:
     st.caption(
         "Ferramenta complementar de gestão e análise de dados. "
         "Não substitui o sistema de ordens de serviço da empresa."
+    )
+
+if modo_demonstracao():
+    st.sidebar.warning("🧪 **MODO DEMONSTRAÇÃO**\n\nBanco separado, só com dados SIMULADOS.")
+    st.warning(
+        "🧪 **MODO DEMONSTRAÇÃO** — todos os dados desta tela são **SIMULADOS** "
+        "(gerados para demonstração técnica) e não representam a operação real da empresa."
     )
 
 navegacao.run()

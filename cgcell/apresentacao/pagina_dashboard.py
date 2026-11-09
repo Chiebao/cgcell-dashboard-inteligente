@@ -11,6 +11,7 @@ from cgcell.analise.preparacao import FiltroOrigem
 from cgcell.apresentacao import graficos
 from cgcell.apresentacao.componentes import DATA_MINIMA, aviso_simulado, mostrar_erro
 from cgcell.apresentacao.formatacao import formatar_data, formatar_moeda
+from cgcell.config import modo_demonstracao
 from cgcell.servicos.erros import ErroNegocio
 from cgcell.servicos.servico_indicadores import calcular_painel
 from cgcell.servicos.sessao import abrir_conexao
@@ -72,9 +73,12 @@ def renderizar() -> None:
     else:
         inicio, fim = calcular_intervalo(periodo, hoje)
 
+    # No modo demonstração só existem dados simulados: abrir em "Todos" evita tela vazia.
+    filtro_padrao = FiltroOrigem.TODOS if modo_demonstracao() else FiltroOrigem.REAIS
     filtro_origem = coluna_origem.radio(
         "Dados",
         list(FiltroOrigem),
+        index=list(FiltroOrigem).index(filtro_padrao),
         format_func=lambda filtro: filtro.rotulo,
         horizontal=True,
         key="dashboard_origem",
