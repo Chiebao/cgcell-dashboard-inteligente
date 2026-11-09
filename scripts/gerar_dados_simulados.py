@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import argparse
 import calendar
-import os
 import random
 import sqlite3
 import sys
@@ -83,10 +82,13 @@ class DestinoProibido(Exception):
 
 
 def eh_banco_principal(destino: Path) -> bool:
-    """Compara caminhos já resolvidos (no Windows, sem diferenciar maiúsculas)."""
-    return os.path.normcase(str(Path(destino).resolve())) == os.path.normcase(
-        str(CAMINHO_BANCO_PADRAO.resolve())
-    )
+    """Compara caminhos já resolvidos, SEMPRE sem diferenciar maiúsculas de minúsculas.
+
+    No Windows `CGCELL.db` e `cgcell.db` são o mesmo arquivo. No Linux seriam arquivos
+    diferentes, mas recusar também é o comportamento mais seguro: na dúvida, o script
+    nunca grava num caminho parecido com o do banco principal.
+    """
+    return str(Path(destino).resolve()).casefold() == str(CAMINHO_BANCO_PADRAO.resolve()).casefold()
 
 
 def resolver_destino(destino: Path | str) -> Path:
