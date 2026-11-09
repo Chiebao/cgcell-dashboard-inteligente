@@ -19,6 +19,7 @@ from cgcell.apresentacao.componentes import (
     aviso_simulado,
     chave_formulario,
     exibir_sucesso_pendente,
+    exibir_tabela,
     mostrar_erro,
     renovar_formulario,
 )
@@ -238,7 +239,11 @@ def _consultar(ordens: list[OrdemServico], tipos: list[TipoServico]) -> None:
     filtro_busca, filtro_status, filtro_origem = st.columns([2, 2, 1])
     busca = filtro_busca.text_input("Buscar pelo código", key="consulta_busca")
     status = filtro_status.multiselect(
-        "Status", list(StatusOS), format_func=lambda s: s.rotulo, key="consulta_status"
+        "Status",
+        list(StatusOS),
+        format_func=lambda s: s.rotulo,
+        placeholder="Todos os status",
+        key="consulta_status",
     )
     origem = filtro_origem.selectbox(
         "Origem", ["Todas", "Reais", "Simuladas"], key="consulta_origem"
@@ -257,7 +262,7 @@ def _consultar(ordens: list[OrdemServico], tipos: list[TipoServico]) -> None:
     if any(o.origem_registro == OrigemRegistro.SIMULADO for o in filtradas):
         aviso_simulado()
     st.caption(f"{len(filtradas)} de {len(ordens)} OS")
-    st.dataframe(_tabela_ordens(filtradas, nomes_tipo), hide_index=True)
+    exibir_tabela(_tabela_ordens(filtradas, nomes_tipo))
 
 
 def _gerenciar(
@@ -285,7 +290,7 @@ def _gerenciar(
 
     if ordem.origem_registro == OrigemRegistro.SIMULADO:
         aviso_simulado()
-    st.dataframe(_tabela_ordens([ordem], nomes_tipo), hide_index=True)
+    exibir_tabela(_tabela_ordens([ordem], nomes_tipo))
 
     _secao_editar(conexao, ordem, tipos)
     _secao_pagamento(conexao, ordem)
