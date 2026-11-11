@@ -208,6 +208,35 @@ def gerar_dados(
     return resumo
 
 
+def preparar_banco_demonstracao(destino: Path | str) -> ResumoGeracao | None:
+    """Gera a base SIMULADA quando o banco de demonstração ainda não existe.
+
+    Usado pelo app em MODO DEMONSTRAÇÃO (ex.: na nuvem, onde o disco começa vazio a cada
+    reinício). Se o arquivo já existe, não toca nele e retorna None.
+
+    A geração é feita num arquivo temporário e só no fim ele recebe o nome definitivo.
+    Assim, se o processo cair no meio, não sobra um banco pela metade que seria
+    tratado como "já gerado" na próxima abertura.
+
+    Levanta `DestinoProibido` se o destino for o banco principal.
+    """
+    caminho = resolver_destino(destino)
+    if caminho.exists():
+        return None
+
+    caminho.parent.mkdir(parents=True, exist_ok=True)  # cria a pasta data/ se faltar
+    temporario = caminho.with_name(f"{caminho.name}.gerando")
+    _apagar_banco(temporario)
+    try:
+        with abrir_conexao(temporario) as conexao:
+            resumo = gerar_dados(conexao)
+        temporario.replace(caminho)
+    except BaseException:
+        _apagar_banco(temporario)
+        raise
+    return resumo
+
+
 # --- Linha de comando ---
 
 
