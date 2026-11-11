@@ -6,7 +6,8 @@ import plotly.express as px
 import streamlit as st
 
 from cgcell.analise.preparacao import CATEGORIA_REAL, CATEGORIA_SIMULADO, FiltroOrigem
-from cgcell.apresentacao.componentes import aviso_simulado
+from cgcell.apresentacao.acessibilidade import resumo_barras
+from cgcell.apresentacao.componentes import aviso_simulado, exibir_grafico, exibir_tabela
 from cgcell.apresentacao.formatacao import formatar_data, formatar_moeda
 from cgcell.apresentacao.graficos import CORES_ORIGEM
 from cgcell.servicos.servico_dados import gerar_relatorio_exploratorio
@@ -73,20 +74,19 @@ def _qualidade(relatorio) -> None:
                 "observacao": "Observação",
             }
         )
-        st.dataframe(ausentes, hide_index=True)
+        exibir_tabela(ausentes)
     with direita:
         st.markdown("**Registros inconsistentes**")
         if relatorio.rejeitados.empty:
             st.success("Nenhuma inconsistência encontrada.")
         else:
-            st.dataframe(
+            exibir_tabela(
                 relatorio.rejeitados.rename(columns={"codigo_os": "Código", "motivo": "Motivo"})[
                     ["Código", "Motivo"]
-                ],
-                hide_index=True,
+                ]
             )
         st.markdown("**Tempo entre etapas (dias)**")
-        st.dataframe(
+        exibir_tabela(
             relatorio.tempos.rename(
                 columns={
                     "medida": "Medida",
@@ -94,8 +94,7 @@ def _qualidade(relatorio) -> None:
                     "mediana_dias": "Mediana",
                     "media_dias": "Média",
                 }
-            ),
-            hide_index=True,
+            )
         )
 
 
@@ -110,16 +109,20 @@ def _distribuicoes(relatorio) -> None:
     st.subheader("Como a demanda se distribui")
     st.caption("Contagem de OS pela data de abertura. Padrões aqui são descritivos, não causais.")
     esquerda, direita = st.columns(2)
-    esquerda.plotly_chart(
-        _barras(relatorio.por_dia_semana, "dia_semana", "quantidade", "OS por dia da semana")
+    exibir_grafico(
+        _barras(relatorio.por_dia_semana, "dia_semana", "quantidade", "OS por dia da semana"),
+        resumo_barras(relatorio.por_dia_semana, "dia_semana", "OS por dia da semana"),
+        area=esquerda,
     )
-    direita.plotly_chart(
+    exibir_grafico(
         _barras(
             relatorio.por_mes_do_ano.assign(mes=relatorio.por_mes_do_ano["mes"].str[:3]),
             "mes",
             "quantidade",
             "OS por mês do ano",
-        )
+        ),
+        resumo_barras(relatorio.por_mes_do_ano, "mes", "OS por mês do ano"),
+        area=direita,
     )
 
     tipos = relatorio.por_tipo_servico.assign(
@@ -133,7 +136,7 @@ def _distribuicoes(relatorio) -> None:
     )
     st.markdown("**Por tipo de serviço**")
     st.caption("Valor dos serviços = soma do valor das OS, pagas ou não. Não é faturamento.")
-    st.dataframe(tipos[["Tipo de serviço", "OS", "Valor dos serviços"]], hide_index=True)
+    exibir_tabela(tipos[["Tipo de serviço", "OS", "Valor dos serviços"]])
 
 
 def _cobertura(relatorio) -> None:
@@ -152,6 +155,6 @@ def _cobertura(relatorio) -> None:
             "coeficiente_variacao": "Variação (CV)",
         }
     )
-    st.dataframe(cobertura, hide_index=True)
+    exibir_tabela(cobertura)
     if relatorio.frequencia_sugerida is not None:
         st.info(f"Agrupamento sugerido: **{relatorio.frequencia_sugerida.rotulo}**.")

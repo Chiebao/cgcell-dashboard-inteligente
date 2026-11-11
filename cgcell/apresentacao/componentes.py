@@ -1,11 +1,14 @@
-"""Componentes reutilizados pelas páginas: mensagens, avisos e controle de formulários."""
+"""Componentes reutilizados pelas páginas: mensagens, avisos, formulários, gráficos e tabelas."""
 
 from __future__ import annotations
 
 from datetime import date
 
+import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
+from cgcell.apresentacao.acessibilidade import ajustar_grafico, obter_preferencias
 from cgcell.servicos.erros import ErroNegocio, ErroValidacao
 
 DATA_MINIMA = date(2000, 1, 1)
@@ -50,3 +53,30 @@ def aviso_simulado() -> None:
         "⚠️ **Dados SIMULADOS incluídos.** Parte dos registros exibidos foi gerada para "
         "demonstração técnica e **não representa a operação real** da empresa."
     )
+
+
+# --- Exibição acessível (respeita as preferências do painel de acessibilidade) ---
+
+
+def exibir_grafico(figura: go.Figure, resumo: str | None = None, area=st) -> None:
+    """Mostra o gráfico ajustado às preferências e, se ligado, o resumo em texto abaixo dele."""
+    preferencias = obter_preferencias()
+    area.plotly_chart(
+        ajustar_grafico(figura, preferencias),
+        # No alto contraste o tema do Streamlit é desligado para não sobrepor as cores escolhidas.
+        theme=None if preferencias.alto_contraste else "streamlit",
+    )
+    if resumo and preferencias.resumo_texto:
+        area.markdown(f"📝 **Resumo do gráfico:** {resumo}")
+
+
+def exibir_tabela(tabela: pd.DataFrame, area=st) -> None:
+    """Tabela interativa no modo padrão; tabela HTML no alto contraste ou com fonte ampliada.
+
+    A tabela interativa do Streamlit é desenhada como imagem (canvas) e não segue CSS nem
+    leitores de tela; a tabela HTML segue as duas coisas.
+    """
+    if obter_preferencias().usa_tabela_html:
+        area.table(tabela, hide_index=True)
+    else:
+        area.dataframe(tabela, hide_index=True)

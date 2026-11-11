@@ -7,6 +7,7 @@ Este arquivo só monta o menu; cada página fica em cgcell/apresentacao/.
 import streamlit as st
 
 from cgcell.apresentacao import (
+    acessibilidade,
     pagina_dashboard,
     pagina_exploracao,
     pagina_ordens_servico,
@@ -57,5 +58,11 @@ if modo_demonstracao():
         "🧪 **MODO DEMONSTRAÇÃO** — todos os dados desta tela são **SIMULADOS** "
         "(gerados para demonstração técnica) e não representam a operação real da empresa."
     )
+
+# Painel de acessibilidade em todas as páginas; as escolhas ficam na sessão (st.session_state).
+with st.sidebar:
+    st.divider()
+    preferencias = acessibilidade.renderizar_painel()
+acessibilidade.aplicar_estilo(preferencias)
 
 navegacao.run()

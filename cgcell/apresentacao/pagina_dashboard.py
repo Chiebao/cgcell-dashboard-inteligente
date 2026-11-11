@@ -9,7 +9,18 @@ import streamlit as st
 from cgcell.analise.indicadores import Frequencia
 from cgcell.analise.preparacao import FiltroOrigem
 from cgcell.apresentacao import graficos
-from cgcell.apresentacao.componentes import DATA_MINIMA, aviso_simulado, mostrar_erro
+from cgcell.apresentacao.acessibilidade import (
+    resumo_evolucao_faturamento,
+    resumo_evolucao_volume,
+    resumo_servicos_frequentes,
+    resumo_status,
+)
+from cgcell.apresentacao.componentes import (
+    DATA_MINIMA,
+    aviso_simulado,
+    exibir_grafico,
+    mostrar_erro,
+)
 from cgcell.apresentacao.formatacao import formatar_data, formatar_moeda
 from cgcell.config import modo_demonstracao
 from cgcell.servicos.erros import ErroNegocio
@@ -113,28 +124,41 @@ def renderizar() -> None:
         return
 
     esquerda, direita = st.columns(2)
-    esquerda.plotly_chart(
-        graficos.grafico_evolucao_faturamento(painel.evolucao_faturamento, frequencia)
+    exibir_grafico(
+        graficos.grafico_evolucao_faturamento(painel.evolucao_faturamento, frequencia),
+        resumo_evolucao_faturamento(painel.evolucao_faturamento, frequencia),
+        area=esquerda,
     )
-    direita.plotly_chart(graficos.grafico_evolucao_volume(painel.evolucao_volume, frequencia))
+    exibir_grafico(
+        graficos.grafico_evolucao_volume(painel.evolucao_volume, frequencia),
+        resumo_evolucao_volume(painel.evolucao_volume, frequencia),
+        area=direita,
+    )
 
     esquerda, direita = st.columns(2)
     if painel.servicos_frequentes.empty:
         esquerda.info("Nenhum serviço realizado no período (OS canceladas não contam).")
     else:
-        esquerda.plotly_chart(
+        exibir_grafico(
             graficos.grafico_servicos_frequentes(
                 painel.servicos_frequentes, painel.contem_simulados
-            )
+            ),
+            resumo_servicos_frequentes(painel.servicos_frequentes, painel.contem_simulados),
+            area=esquerda,
         )
-    direita.plotly_chart(graficos.grafico_status(painel.por_status, painel.contem_simulados))
+    exibir_grafico(
+        graficos.grafico_status(painel.por_status, painel.contem_simulados),
+        resumo_status(painel.por_status, painel.contem_simulados),
+        area=direita,
+    )
 
 
 def _indicadores(painel) -> None:
     faturamento, quantidade, concluidas, canceladas = st.columns(4)
     faturamento.metric(
         "Faturamento recebido",
-        formatar_moeda(painel.faturamento_recebido),
+        # Espaço que não quebra: "R$" nunca fica numa linha e o número em outra.
+        formatar_moeda(painel.faturamento_recebido).replace(" ", "\u00a0"),
         help="Soma das OS pagas com data de pagamento dentro do período.",
     )
     quantidade.metric(

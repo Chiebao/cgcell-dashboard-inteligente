@@ -56,6 +56,41 @@ Exibição no padrão brasileiro: `DD/MM/AAAA` e `R$ 1.234,56`.
 
 ---
 
+## Acessibilidade
+
+Na barra lateral, em **todas as páginas**, a seção **♿ Acessibilidade** tem três recursos.
+As escolhas valem para todas as páginas enquanto o app estiver aberto (ficam em `st.session_state`).
+
+| Recurso | O que faz | Critério WCAG 2.x |
+|---|---|---|
+| **Alto contraste** | Fundo preto, texto branco e destaques em amarelo. Bordas visíveis em campos, botões, indicadores, avisos, tabelas e gráficos. Contorno amarelo no elemento com foco do teclado. Os gráficos também mudam (fundo, eixos, rótulos e cores), e as barras de dados SIMULADOS **mantêm a hachura**, para que nenhuma informação dependa só da cor. | **1.4.6 Contraste (Aprimorado), nível AAA**: no mínimo 7:1 entre texto e fundo. Também 1.4.1 (uso da cor), 1.4.11 (contraste de componentes) e 2.4.7 (foco visível). |
+| **Tamanho da fonte** | Normal, Grande (125%) ou Muito grande (150%). Aumenta a página inteira (títulos, rótulos, indicadores, tabelas) e os textos dos gráficos. As colunas passam para a linha de baixo, os gráficos ocupam a largura toda e os títulos quebram linha, sem rolagem lateral nem texto cortado. | **1.4.4 Redimensionar texto, nível AA** (até 200% sem perda de conteúdo) e **1.4.10 Refluxo**. |
+| **Resumo em texto dos gráficos** | Abaixo de cada gráfico, um parágrafo que descreve os dados (total, maior e menor período, distribuição percentual, presença de dados SIMULADOS), gerado a partir dos **mesmos dados** do gráfico. Útil para quem usa leitor de tela, que não consegue ler um gráfico. | **1.1.1 Conteúdo não textual, nível A** (alternativa em texto). |
+
+Contrastes medidos com a fórmula de luminância relativa da WCAG (testes em `tests/unitarios/test_acessibilidade.py`):
+
+| Cor sobre o fundo `#000000` | Razão |
+|---|---|
+| Texto `#FFFFFF` | 21:1 |
+| Destaque `#FFD700` | 15,0:1 |
+| Gráficos: `#00FFFF`, `#7CFC00`, `#FF8080` | 16,7:1 · 15,8:1 · 8,7:1 |
+
+**Como ativar:** abra o app, role a barra lateral até **♿ Acessibilidade** e ligue os recursos.
+Navegue pelas páginas **pelo menu lateral** — recarregar a página (F5) ou digitar o endereço inicia
+uma sessão nova e volta tudo ao padrão.
+
+Detalhes técnicos:
+
+- Com alto contraste ou fonte ampliada, as tabelas são exibidas como **tabela HTML** (`st.table`):
+  a tabela interativa do Streamlit é desenhada como imagem (canvas) e não segue CSS nem leitores de tela.
+- Toda a lógica fica em `cgcell/apresentacao/acessibilidade.py`, em funções puras e testadas
+  (contraste, CSS de cada combinação, ajuste dos gráficos e resumos em texto).
+- Limitação conhecida: o Streamlit declara a página como inglês (`<html lang="en">`) e não permite
+  mudar isso; leitores de tela podem usar pronúncia em inglês e o Chrome pode oferecer tradução
+  automática (desative em "Nunca traduzir este site").
+
+---
+
 ## Arquitetura
 
 Arquitetura modular em camadas. A interface nunca acessa o banco diretamente: passa sempre pela camada de serviços.
@@ -250,7 +285,7 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 
 | Pasta | O que cobre |
 |---|---|
-| `tests/unitarios/` | Validações, regras de consistência, indicadores, formatação BR, períodos, gráficos, tratamento, agregação, pipeline e exploração (sem banco). |
+| `tests/unitarios/` | Validações, regras de consistência, indicadores, formatação BR, períodos, gráficos, tratamento, agregação, pipeline, exploração e acessibilidade (contraste, CSS, gráficos, resumos) (sem banco). |
 | `tests/integracao/` | Conexão, migrações, restrições do banco, cadastros, edição, pagamento, exclusão, backup, indicadores e pipeline a partir do banco, telas (com o `AppTest` do Streamlit) e scripts. |
 | `tests/ml/` | Preparação de variáveis para o modelo, com testes de **vazamento de dados**. |
 

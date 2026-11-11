@@ -11,6 +11,7 @@ from cgcell.apresentacao.componentes import (
     agendar_sucesso,
     chave_formulario,
     exibir_sucesso_pendente,
+    exibir_tabela,
     mostrar_erro,
     renovar_formulario,
 )
@@ -76,7 +77,7 @@ def _tabela(tipos: list[TipoServico]) -> None:
             "Situação": ["✅ Ativo" if tipo.ativo else "⛔ Desativado" for tipo in tipos],
         }
     )
-    st.dataframe(tabela, hide_index=True)
+    exibir_tabela(tabela)
 
 
 def _ativar_desativar(conexao: sqlite3.Connection, tipos: list[TipoServico]) -> None:
