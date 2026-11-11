@@ -206,6 +206,39 @@ O navegador abre em `http://localhost:8501`. Para encerrar, pressione `Ctrl + C`
 
 A página recarrega sozinha quando um arquivo do projeto é salvo (opção `runOnSave` em `.streamlit/config.toml`).
 
+## Modo demonstração
+
+> ⚠️ **Todos os dados do modo demonstração são SIMULADOS.** Foram gerados por um script para
+> demonstração técnica e capturas de tela, e **não representam a operação real** da CG CELL Repair.
+
+Dê dois cliques em **`iniciar_demo.bat`**. Ele:
+
+1. usa um banco **separado**, `data/demo.db` — o banco principal (`data/cgcell.db`) não é aberto nem alterado;
+2. na primeira vez, gera os dados simulados (cerca de 6 meses de OS em dias úteis);
+3. abre o app em `http://localhost:8502` (porta diferente, pode ficar aberto junto com o app normal);
+4. mostra o aviso **🧪 MODO DEMONSTRAÇÃO** em todas as telas e abre o dashboard com o filtro "Todos".
+
+Para fechar, feche a janela preta da demonstração.
+
+Também é possível gerar os dados pelo terminal:
+
+```powershell
+python -m scripts.gerar_dados_simulados             # gera data/demo.db (se estiver vazio)
+python -m scripts.gerar_dados_simulados --recriar   # apaga e gera de novo
+```
+
+Como os dados são gerados:
+
+| Item | Regra |
+|---|---|
+| Reprodutibilidade | Semente fixa (`--semente`, padrão 2026). Mesma semente no mesmo dia = mesmos dados. |
+| Período | Últimos 6 meses até hoje (`--meses`), segunda a sexta, de 3 a 8 OS por dia. |
+| Tipos | Troca de tela, troca de bateria, conector de carga, software e formatação, limpeza e oxidação. |
+| Valores | Faixa fictícia por tipo (ex.: tela de R$ 250 a R$ 900); 2% de garantias com valor zero. |
+| Status | OS antigas quase todas concluídas (90% pagas); recentes abertas ou em andamento; cerca de 6% canceladas. |
+| Origem | Sempre `simulado`; códigos começam com `SIM-`. |
+| Segurança | Passa pela camada de serviços (mesmas validações do app) e **recusa** gravar no banco principal. |
+
 ## Testes e qualidade
 
 ```powershell
@@ -228,7 +261,7 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 - Sem histórico real ainda: os indicadores refletem só o que for cadastrado a partir de agora.
 - Sem login (limitação do Streamlit); o app foi feito para rodar só no computador da loja.
 - Faturamento não é lucro: custos de peças não são registrados.
-- Capturas de tela ainda não incluídas (serão feitas apenas com dados fictícios).
+- Capturas de tela ainda não incluídas (serão feitas no [modo demonstração](#modo-demonstração), com dados SIMULADOS).
 
 ---
 

@@ -30,3 +30,11 @@ def obter_caminho_banco() -> Path:
         return CAMINHO_BANCO_PADRAO
     caminho = Path(valor)
     return caminho if caminho.is_absolute() else RAIZ_PROJETO / caminho
+
+
+def modo_demonstracao() -> bool:
+    """Verdadeiro quando o app foi aberto pelo `iniciar_demo.bat` (CGCELL_MODO_DEMO=1).
+
+    Nesse modo a interface avisa em todas as telas que os dados são SIMULADOS.
+    """
+    return os.getenv("CGCELL_MODO_DEMO", "").strip().lower() in {"1", "sim", "true"}

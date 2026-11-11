@@ -15,6 +15,7 @@ htmlcov/
 # --- Banco SQLite e backups (dados ficam só no PC) ---
 data/*
 !data/.gitkeep
+data/demo.db
 *.db
 *.sqlite
 *.sqlite3
