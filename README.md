@@ -255,6 +255,12 @@ Dê dois cliques em **`iniciar_demo.bat`**. Ele:
 
 Para fechar, feche a janela preta da demonstração.
 
+O próprio app também gera os dados sozinho: com `CGCELL_MODO_DEMO=1` e `CGCELL_CAMINHO_BANCO`
+apontando para um banco que ainda não existe (ex.: `data/demo.db`), a primeira abertura cria a
+pasta e o banco com os dados simulados, **uma vez por servidor**. É assim que a versão na nuvem
+funciona, já que lá o disco começa vazio. Em modo demonstração sem `CGCELL_CAMINHO_BANCO`, o app
+**para com erro** em vez de usar o banco principal.
+
 Também é possível gerar os dados pelo terminal:
 
 ```powershell
