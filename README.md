@@ -6,6 +6,9 @@ com Streamlit, Pandas, Plotly e SQLite. Projeto acadêmico do curso de Análise 
 > **Status:** em desenvolvimento — **Etapa 4 de 8 concluída**: cadastros, dashboard e pipeline de dados
 > funcionando. O módulo de Machine Learning ainda não foi implementado. Veja o [roadmap](#roadmap).
 
+**Demonstração online:** https://cgcell-dashboard-inteligente.streamlit.app — com **dados SIMULADOS**
+(veja [Deploy](#deploy)). Disponibilidade: [status page](https://stats.uptimerobot.com/PQXa63cYxG).
+
 ---
 
 ## Problema e solução
@@ -280,6 +283,47 @@ Como os dados são gerados:
 | Origem | Sempre `simulado`; códigos começam com `SIM-`. |
 | Segurança | Passa pela camada de serviços (mesmas validações do app) e **recusa** gravar no banco principal. |
 
+## Deploy
+
+**Link público:** https://cgcell-dashboard-inteligente.streamlit.app
+
+> ⚠️ **A versão online roda em MODO DEMONSTRAÇÃO: todos os dados são SIMULADOS.** Ela não representa a
+> operação real da CG CELL Repair. O banco real continua **só no computador da loja**.
+
+Por que dados simulados na nuvem:
+
+1. **Acesso público.** O Streamlit não tem login nativo: qualquer pessoa com o link vê e cadastra dados.
+2. **Disco temporário.** O Streamlit Community Cloud apaga os arquivos quando o app reinicia ou hiberna;
+   um banco SQLite real perderia os dados.
+
+Como foi publicado:
+
+| Item | Configuração |
+|---|---|
+| Serviço | [Streamlit Community Cloud](https://streamlit.io/cloud) (gratuito, feito para apps Streamlit) |
+| Fonte | Este repositório no GitHub, branch `main`, arquivo `app.py` |
+| Antes de publicar | CI verde (Ruff + Pytest) na `main` |
+| Python | 3.12 (mesma versão do desenvolvimento e do CI) |
+| Dependências | `requirements.txt` (só as de execução) |
+| Configuração | Secrets do Streamlit, que viram variáveis de ambiente: `CGCELL_MODO_DEMO = "1"` e `CGCELL_CAMINHO_BANCO = "data/demo.db"` |
+| Atualização | Automática: cada push na `main` publica a nova versão |
+
+Ao iniciar, o app gera os dados simulados sozinho (veja [Modo demonstração](#modo-demonstração)). Como o
+disco é temporário, os dados voltam ao estado inicial sempre que o servidor reinicia, e o que alguém cadastrar
+online se perde nesse momento. Apps sem acesso por um tempo hibernam: a primeira visita depois disso pode
+levar alguns segundos a mais.
+
+## Monitoramento
+
+O link público é verificado pelo [UptimeRobot](https://uptimerobot.com) (plano gratuito):
+
+| Item | Configuração |
+|---|---|
+| Tipo | Monitor HTTP(s) apontando para https://cgcell-dashboard-inteligente.streamlit.app |
+| Intervalo | A cada 5 minutos |
+| Alerta | E-mail para o endereço da conta no UptimeRobot quando o site fica fora do ar |
+| Status page pública | https://stats.uptimerobot.com/PQXa63cYxG |
+
 ## Testes e qualidade
 
 ```powershell
@@ -300,7 +344,8 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 ## Limitações conhecidas
 
 - Sem histórico real ainda: os indicadores refletem só o que for cadastrado a partir de agora.
-- Sem login (limitação do Streamlit); o app foi feito para rodar só no computador da loja.
+- Sem login (limitação do Streamlit); o uso real é só no computador da loja. A versão online é pública e
+  por isso só tem dados SIMULADOS, que se perdem quando o servidor reinicia.
 - Faturamento não é lucro: custos de peças não são registrados.
 - Capturas de tela ainda não incluídas (serão feitas no [modo demonstração](#modo-demonstração), com dados SIMULADOS).
 
@@ -308,8 +353,10 @@ Os testes nunca usam o banco da aplicação; usam arquivos temporários e dados 
 
 ## Segurança e privacidade
 
-- O app roda **apenas localmente**. O Streamlit não tem login nativo: se um dia for hospedado online, será preciso
-  tratar o acesso público e a persistência do SQLite (hospedagens com disco temporário perdem os dados).
+- Os dados reais ficam **apenas no computador da loja**. A versão online ([Deploy](#deploy)) é pública, porque o
+  Streamlit não tem login nativo, e roda só com dados SIMULADOS num disco temporário. Usar dados reais online
+  exigiria autenticação e um banco persistente.
+- A configuração da nuvem fica nos Secrets do Streamlit, fora do repositório (e não contém senhas nem tokens).
 - O banco (`data/*.db`), os backups (`backups/`) e o arquivo `.env` ficam **fora do repositório**.
 - Todas as consultas SQL são parametrizadas (sem montar SQL com dados do usuário).
 - **LGPD:** o projeto evita dados pessoais por design — não armazena nome, telefone ou documento de clientes,
