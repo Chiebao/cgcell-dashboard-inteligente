@@ -13,9 +13,32 @@ from cgcell.apresentacao import (
     pagina_ordens_servico,
     pagina_tipos_servico,
 )
-from cgcell.config import NOME_PROJETO, modo_demonstracao
+from cgcell.config import NOME_PROJETO, modo_demonstracao, obter_caminho_banco
+from scripts.gerar_dados_simulados import DestinoProibido, preparar_banco_demonstracao
 
 st.set_page_config(page_title=NOME_PROJETO, page_icon="📱", layout="wide")
+
+
+@st.cache_resource(show_spinner="Gerando os dados SIMULADOS de demonstração...")
+def preparar_demonstracao(caminho_banco: str) -> None:
+    """Gera os dados simulados UMA vez por servidor (e por caminho de banco).
+
+    O `st.cache_resource` guarda o resultado enquanto o servidor estiver ligado e faz
+    as sessões que chegarem ao mesmo tempo esperarem a primeira terminar.
+    """
+    preparar_banco_demonstracao(caminho_banco)
+
+
+if modo_demonstracao():
+    try:
+        preparar_demonstracao(str(obter_caminho_banco()))
+    except DestinoProibido:
+        st.error(
+            "MODO DEMONSTRAÇÃO configurado sem banco separado. Defina "
+            "`CGCELL_CAMINHO_BANCO` (ex.: `data/demo.db`): dados simulados nunca são "
+            "gravados no banco principal."
+        )
+        st.stop()
 
 navegacao = st.navigation(
     {
